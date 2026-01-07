@@ -9,47 +9,86 @@ const PORT = process.env.PORT || 3000;
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-
-// Static files (public klasöründekileri sun)
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Memory Database (Vercel'de dosya yazma yok)
+// Memory Database
 let messages = [
   {
     id: 1,
     username: "Sistem",
-    message: "Chat uygulamasına hoş geldiniz!",
+    message: "Chat uygulaması çalışıyor! Server canlı tutuluyor.",
     timestamp: new Date().toISOString(),
     type: "system"
   }
 ];
 
-// 1. Ana sayfa - index.html'i gönder
+// Server uptime tracking
+let serverStartTime = new Date();
+let requestCount = 0;
+let lastActivity = new Date();
+
+// Activity middleware - her istekte canlı tut
+app.use((req, res, next) => {
+  requestCount++;
+  lastActivity = new Date();
+  next();
+});
+
+// ========== API ROUTES ==========
+
+// 1. Ana sayfa
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-// 2. API Test endpoint
+// 2. API Test - Canlılık kontrolü
 app.get('/api/test', (req, res) => {
+  const uptime = process.uptime();
+  const now = new Date();
+  const idleTime = (now - lastActivity) / 1000; // saniye
+  
   res.json({
     status: 'OK',
     message: 'API çalışıyor',
-    timestamp: new Date().toISOString(),
-    messageCount: messages.length
+    serverStart: serverStartTime.toISOString(),
+    uptime: `${Math.floor(uptime / 3600)}h ${Math.floor((uptime % 3600) / 60)}m ${Math.floor(uptime % 60)}s`,
+    requestCount: requestCount,
+    lastActivity: lastActivity.toISOString(),
+    idleTime: `${Math.floor(idleTime)} saniye`,
+    memory: process.memoryUsage(),
+    environment: process.env.NODE_ENV || 'development'
   });
 });
 
-// 3. Tüm mesajları getir
+// 3. Ping endpoint - Sadece canlılık kontrolü
+app.get('/api/ping', (req, res) => {
+  res.json({ 
+    pong: true, 
+    timestamp: new Date().toISOString(),
+    status: 'alive'
+  });
+});
+
+// 4. Wake up endpoint - Uyandırmak için
+app.get('/api/wakeup', (req, res) => {
+  lastActivity = new Date();
+  res.json({ 
+    success: true, 
+    message: 'Server uyandırıldı',
+    timestamp: lastActivity.toISOString()
+  });
+});
+
+// 5. Tüm mesajları getir
 app.get('/api/messages', (req, res) => {
   res.json(messages);
 });
 
-// 4. Yeni mesaj ekle
+// 6. Yeni mesaj ekle
 app.post('/api/messages', (req, res) => {
   try {
     const { username, message } = req.body;
     
-    // Validation
     if (!username || !message) {
       return res.status(400).json({
         success: false,
@@ -67,9 +106,9 @@ app.post('/api/messages', (req, res) => {
     
     messages.push(newMessage);
     
-    // Son 200 mesajı tut
-    if (messages.length > 200) {
-      messages = messages.slice(-200);
+    // Son 500 mesajı tut
+    if (messages.length > 500) {
+      messages = messages.slice(-500);
     }
     
     res.json({
@@ -86,10 +125,9 @@ app.post('/api/messages', (req, res) => {
   }
 });
 
-// 5. Tüm mesajları temizle
+// 7. Tüm mesajları temizle
 app.delete('/api/messages', (req, res) => {
   try {
-    // Sistem mesajını koru
     const systemMessage = messages.find(m => m.type === 'system');
     messages = systemMessage ? [systemMessage] : [];
     
@@ -106,33 +144,44 @@ app.delete('/api/messages', (req, res) => {
   }
 });
 
-// 6. Health check
-app.get('/api/health', (req, res) => {
+// 8. Server stats
+app.get('/api/stats', (req, res) => {
+  const now = new Date();
+  const uptime = process.uptime();
+  const idleTime = (now - lastActivity) / 1000;
+  
   res.json({
-    status: 'healthy',
-    timestamp: new Date().toISOString(),
-    environment: process.env.NODE_ENV || 'development'
-  });
-});
-
-// 7. Vercel info
-app.get('/api/vercel', (req, res) => {
-  res.json({
-    platform: 'Vercel',
+    serverStart: serverStartTime,
+    uptime: uptime,
+    idleTime: idleTime,
+    requestCount: requestCount,
+    messageCount: messages.length,
+    lastActivity: lastActivity,
+    memoryUsage: process.memoryUsage(),
     nodeVersion: process.version,
-    uptime: process.uptime()
+    platform: process.platform
   });
 });
 
-// 8. 404 handler - Olmayan route'lar için
+// 404 handler
 app.use((req, res) => {
   res.status(404).json({
     error: 'Route bulunamadı',
-    path: req.path
+    path: req.path,
+    availableEndpoints: [
+      'GET  /',
+      'GET  /api/test',
+      'GET  /api/ping',
+      'GET  /api/wakeup',
+      'GET  /api/messages',
+      'POST /api/messages',
+      'DELETE /api/messages',
+      'GET  /api/stats'
+    ]
   });
 });
 
-// 9. Global error handler
+// Error handler
 app.use((err, req, res, next) => {
   console.error('Server error:', err);
   res.status(500).json({
@@ -145,7 +194,13 @@ app.use((err, req, res, next) => {
 app.listen(PORT, () => {
   console.log(`✅ Server ${PORT} portunda çalışıyor`);
   console.log(`🔗 Local: http://localhost:${PORT}`);
-  console.log(`📡 API: http://localhost:${PORT}/api/test`);
+  console.log(`📡 Test: http://localhost:${PORT}/api/test`);
+  console.log(`💤 Auto-wakeup aktif`);
+  
+  // Auto-wakeup: Her 5 dakikada bir kendini uyandır
+  setInterval(() => {
+    fetch(`http://localhost:${PORT}/api/ping`).catch(() => {});
+  }, 4.5 * 60 * 1000); // 4.5 dakika
 });
 
 module.exports = app;
