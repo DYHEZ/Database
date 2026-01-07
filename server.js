@@ -1,176 +1,151 @@
 const express = require('express');
-const fs = require('fs').promises;
-const path = require('path');
-const bodyParser = require('body-parser');
 const cors = require('cors');
+const path = require('path');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
 // Middleware
 app.use(cors());
-app.use(bodyParser.json());
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+// Static files (public klasöründekileri sun)
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Database yolu
-const DB_PATH = path.join(__dirname, 'database', 'database.json');
+// Memory Database (Vercel'de dosya yazma yok)
+let messages = [
+  {
+    id: 1,
+    username: "Sistem",
+    message: "Chat uygulamasına hoş geldiniz!",
+    timestamp: new Date().toISOString(),
+    type: "system"
+  }
+];
 
-// Database'i başlat (yoksa oluştur)
-async function initializeDatabase() {
-    try {
-        await fs.access(DB_PATH);
-        console.log('Database dosyası mevcut.');
-    } catch {
-        console.log('Database dosyası oluşturuluyor...');
-        const initialData = {
-            messages: [
-                {
-                    id: 1,
-                    username: "Sistem",
-                    message: "Chat uygulamasına hoş geldiniz!",
-                    timestamp: new Date().toISOString(),
-                    type: "system"
-                },
-                {
-                    id: 2,
-                    username: "ChatBot",
-                    message: "Mesaj göndermek için aşağıdaki kutuya yazın!",
-                    timestamp: new Date().toISOString(),
-                    type: "user"
-                }
-            ],
-            users: [],
-            settings: {
-                maxMessages: 1000,
-                autoCleanup: true
-            }
-        };
-        
-        await fs.mkdir(path.dirname(DB_PATH), { recursive: true });
-        await fs.writeFile(DB_PATH, JSON.stringify(initialData, null, 2));
-    }
-}
-
-// Tüm mesajları getir
-app.get('/api/messages', async (req, res) => {
-    try {
-        const data = await fs.readFile(DB_PATH, 'utf8');
-        const db = JSON.parse(data);
-        res.json(db.messages);
-    } catch (error) {
-        console.error('Mesajlar okunamadı:', error);
-        res.status(500).json({ error: 'Mesajlar yüklenemedi' });
-    }
-});
-
-// Yeni mesaj ekle
-app.post('/api/messages', async (req, res) => {
-    try {
-        const { username, message } = req.body;
-        
-        if (!username || !message) {
-            return res.status(400).json({ error: 'Kullanıcı adı ve mesaj gereklidir' });
-        }
-        
-        const data = await fs.readFile(DB_PATH, 'utf8');
-        const db = JSON.parse(data);
-        
-        const newMessage = {
-            id: Date.now(),
-            username: username.trim(),
-            message: message.trim(),
-            timestamp: new Date().toISOString(),
-            type: 'user'
-        };
-        
-        db.messages.push(newMessage);
-        
-        // Mesaj sayısı sınırlaması (eski mesajları temizle)
-        if (db.messages.length > db.settings.maxMessages) {
-            db.messages = db.messages.slice(-db.settings.maxMessages);
-        }
-        
-        await fs.writeFile(DB_PATH, JSON.stringify(db, null, 2));
-        
-        res.json({ 
-            success: true, 
-            message: newMessage 
-        });
-        
-    } catch (error) {
-        console.error('Mesaj eklenemedi:', error);
-        res.status(500).json({ error: 'Mesaj eklenemedi' });
-    }
-});
-
-// Mesaj sil
-app.delete('/api/messages/:id', async (req, res) => {
-    try {
-        const messageId = parseInt(req.params.id);
-        
-        const data = await fs.readFile(DB_PATH, 'utf8');
-        const db = JSON.parse(data);
-        
-        const initialLength = db.messages.length;
-        db.messages = db.messages.filter(msg => msg.id !== messageId);
-        
-        if (db.messages.length === initialLength) {
-            return res.status(404).json({ error: 'Mesaj bulunamadı' });
-        }
-        
-        await fs.writeFile(DB_PATH, JSON.stringify(db, null, 2));
-        
-        res.json({ 
-            success: true, 
-            message: 'Mesaj silindi' 
-        });
-        
-    } catch (error) {
-        console.error('Mesaj silinemedi:', error);
-        res.status(500).json({ error: 'Mesaj silinemedi' });
-    }
-});
-
-// Tüm mesajları temizle
-app.delete('/api/messages', async (req, res) => {
-    try {
-        const data = await fs.readFile(DB_PATH, 'utf8');
-        const db = JSON.parse(data);
-        
-        // Sistem mesajını koru
-        const systemMessage = db.messages.find(msg => msg.type === 'system');
-        db.messages = systemMessage ? [systemMessage] : [];
-        
-        await fs.writeFile(DB_PATH, JSON.stringify(db, null, 2));
-        
-        res.json({ 
-            success: true, 
-            message: 'Tüm mesajlar temizlendi' 
-        });
-        
-    } catch (error) {
-        console.error('Mesajlar temizlenemedi:', error);
-        res.status(500).json({ error: 'Mesajlar temizlenemedi' });
-    }
-});
-
-// Ana sayfa
+// 1. Ana sayfa - index.html'i gönder
 app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'index.html'));
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-// Sunucuyu başlat
-async function startServer() {
-    await initializeDatabase();
-    
-    app.listen(PORT, () => {
-        console.log(`Server çalışıyor: http://localhost:${PORT}`);
-        console.log(`API Endpoints:`);
-        console.log(`  GET  /api/messages`);
-        console.log(`  POST /api/messages`);
-        console.log(`  DELETE /api/messages/:id`);
-        console.log(`  DELETE /api/messages (tümünü temizle)`);
-    });
-}
+// 2. API Test endpoint
+app.get('/api/test', (req, res) => {
+  res.json({
+    status: 'OK',
+    message: 'API çalışıyor',
+    timestamp: new Date().toISOString(),
+    messageCount: messages.length
+  });
+});
 
-startServer();
+// 3. Tüm mesajları getir
+app.get('/api/messages', (req, res) => {
+  res.json(messages);
+});
+
+// 4. Yeni mesaj ekle
+app.post('/api/messages', (req, res) => {
+  try {
+    const { username, message } = req.body;
+    
+    // Validation
+    if (!username || !message) {
+      return res.status(400).json({
+        success: false,
+        error: 'Kullanıcı adı ve mesaj gerekli'
+      });
+    }
+    
+    const newMessage = {
+      id: Date.now(),
+      username: username.trim(),
+      message: message.trim(),
+      timestamp: new Date().toISOString(),
+      type: 'user'
+    };
+    
+    messages.push(newMessage);
+    
+    // Son 200 mesajı tut
+    if (messages.length > 200) {
+      messages = messages.slice(-200);
+    }
+    
+    res.json({
+      success: true,
+      message: newMessage
+    });
+    
+  } catch (error) {
+    console.error('Error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Sunucu hatası'
+    });
+  }
+});
+
+// 5. Tüm mesajları temizle
+app.delete('/api/messages', (req, res) => {
+  try {
+    // Sistem mesajını koru
+    const systemMessage = messages.find(m => m.type === 'system');
+    messages = systemMessage ? [systemMessage] : [];
+    
+    res.json({
+      success: true,
+      message: 'Tüm mesajlar temizlendi'
+    });
+    
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: 'Temizleme hatası'
+    });
+  }
+});
+
+// 6. Health check
+app.get('/api/health', (req, res) => {
+  res.json({
+    status: 'healthy',
+    timestamp: new Date().toISOString(),
+    environment: process.env.NODE_ENV || 'development'
+  });
+});
+
+// 7. Vercel info
+app.get('/api/vercel', (req, res) => {
+  res.json({
+    platform: 'Vercel',
+    nodeVersion: process.version,
+    uptime: process.uptime()
+  });
+});
+
+// 8. 404 handler - Olmayan route'lar için
+app.use((req, res) => {
+  res.status(404).json({
+    error: 'Route bulunamadı',
+    path: req.path
+  });
+});
+
+// 9. Global error handler
+app.use((err, req, res, next) => {
+  console.error('Server error:', err);
+  res.status(500).json({
+    error: 'Internal server error',
+    message: err.message
+  });
+});
+
+// Server başlat
+app.listen(PORT, () => {
+  console.log(`✅ Server ${PORT} portunda çalışıyor`);
+  console.log(`🔗 Local: http://localhost:${PORT}`);
+  console.log(`📡 API: http://localhost:${PORT}/api/test`);
+});
+
+module.exports = app;
