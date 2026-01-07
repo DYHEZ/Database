@@ -25,6 +25,6 @@
   "users": [],
   "settings": {
     "maxMessages": 1000,
-    "autoCleanup": true
+    "autoCleanup": false
   }
 }
