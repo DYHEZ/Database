@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vercel Chat Uygulaması</title>
+    <link rel="stylesheet" href="/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="app-container">
+        <div class="header">
+            <div class="logo">
+                <i class="fas fa-comments"></i>
+                <h1>Vercel Chat</h1>
+            </div>
+            <div class="server-status">
+                <span class="status-indicator active"></span>
+                <span>API Aktif</span>
+            </div>
+        </div>
+
+        <div class="chat-container">
+            <div class="sidebar">
+                <div class="online-users">
+                    <h3><i class="fas fa-users"></i> Çevrimiçi</h3>
+                    <div class="users-list" id="users-list">
+                        <div class="user">
+                            <span class="user-status online"></span>
+                            <span>Sen</span>
+                        </div>
+                        <div class="user">
+                            <span class="user-status online"></span>
+                            <span>ChatBot</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="chat-info">
+                    <p><i class="fas fa-database"></i> Mesajlar database.json'da saklanır</p>
+                    <p><i class="fas fa-server"></i> Backend: Express.js</p>
+                    <p><i class="fas fa-cloud"></i> Host: Vercel</p>
+                </div>
+            </div>
+
+            <div class="main-chat">
+                <div class="chat-header">
+                    <h2><i class="fas fa-hashtag"></i> Genel Sohbet</h2>
+                    <div class="chat-actions">
+                        <button id="refresh-btn" class="btn-icon" title="Yenile">
+                            <i class="fas fa-sync-alt"></i>
+                        </button>
+                        <button id="clear-btn" class="btn-icon" title="Temizle">
+                            <i class="fas fa-trash-alt"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="messages-container" id="messages-container">
+                    <!-- Mesajlar buraya gelecek -->
+                </div>
+
+                <div class="message-input-area">
+                    <div class="user-info-input">
+                        <input type="text" id="username-input" placeholder="Kullanıcı Adı" 
+                               value="Misafir" maxlength="20">
+                    </div>
+                    
+                    <div class="input-group">
+                        <input type="text" id="message-input" 
+                               placeholder="Mesajınızı yazın... (Enter ile gönder)" 
+                               maxlength="500">
+                        <button id="send-btn" class="send-button">
+                            <i class="fas fa-paper-plane"></i> Gönder
+                        </button>
+                    </div>
+                    
+                    <div class="input-footer">
+                        <div class="char-count">
+                            <span id="char-counter">0/500</span>
+                        </div>
+                        <div class="api-info">
+                            <span id="api-status">API: Hazır</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>Chat Uygulaması • Backend: Express.js • Database: database.json • Host: Vercel</p>
+        </div>
+    </div>
+
+    <div id="notification" class="notification">
+        <span id="notification-text"></span>
+    </div>
+
+    <script src="/script.js"></script>
+</body>
+</html>
