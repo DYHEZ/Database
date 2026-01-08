@@ -1,0 +1,39 @@
+{
+  "messages": [],
+  "users": {},
+  "rooms": {
+    "genel": {
+      "id": "genel",
+      "name": "Genel Sohbet",
+      "description": "Herkesin katılabileceği genel sohbet odası",
+      "created": "2023-10-15T10:00:00.000Z",
+      "members": []
+    },
+    "teknoloji": {
+      "id": "teknoloji",
+      "name": "Teknoloji",
+      "description": "Teknoloji haberleri ve tartışmaları",
+      "created": "2023-10-15T10:00:00.000Z",
+      "members": []
+    },
+    "oyun": {
+      "id": "oyun",
+      "name": "Oyun",
+      "description": "Oyun sohbetleri",
+      "created": "2023-10-15T10:00:00.000Z",
+      "members": []
+    }
+  },
+  "settings": {
+    "maxMessageLength": 2000,
+    "maxMessagesPerRoom": 1000,
+    "messageLifetime": 30,
+    "allowMedia": true,
+    "maxFileSize": 5242880
+  },
+  "statistics": {
+    "totalMessages": 0,
+    "totalUsers": 0,
+    "roomsCount": 3
+  }
+}
