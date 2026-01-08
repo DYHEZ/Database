@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ProChat | Profesyonel Sohbet Platformu</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="icon" type="image/x-icon" href="https://img.icons8.com/color/96/000000/chat--v1.png">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <i class="fas fa-comments"></i>
+                    <h1>ProChat</h1>
+                </div>
+                <div class="user-profile">
+                    <div class="avatar" id="user-avatar">
+                        <span id="avatar-letter">U</span>
+                    </div>
+                    <div class="user-info">
+                        <span id="username-display">Kullanıcı</span>
+                        <span class="status online" id="user-status"></span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="rooms-section">
+                <div class="section-header">
+                    <h3><i class="fas fa-hashtag"></i> Odalar</h3>
+                    <button class="btn-icon" id="create-room-btn" title="Yeni Oda">
+                        <i class="fas fa-plus"></i>
+                    </button>
+                </div>
+                <div class="rooms-list" id="rooms-list">
+                    <!-- Odalar buraya yüklenecek -->
+                </div>
+            </div>
+
+            <div class="online-users-section">
+                <div class="section-header">
+                    <h3><i class="fas fa-users"></i> Çevrimiçi</h3>
+                    <span class="badge" id="online-count">0</span>
+                </div>
+                <div class="users-list" id="online-users">
+                    <!-- Çevrimiçi kullanıcılar -->
+                </div>
+            </div>
+
+            <div class="sidebar-footer">
+                <div class="server-stats">
+                    <div class="stat">
+                        <i class="fas fa-comment"></i>
+                        <span id="total-messages">0</span>
+                    </div>
+                    <div class="stat">
+                        <i class="fas fa-user"></i>
+                        <span id="total-users">0</span>
+                    </div>
+                    <div class="stat">
+                        <i class="fas fa-door-open"></i>
+                        <span id="total-rooms">0</span>
+                    </div>
+                </div>
+                <div class="app-info">
+                    <span>ProChat v1.0</span>
+                    <span class="status-indicator active" id="server-status"></span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Chat Area -->
+        <div class="main-content">
+            <!-- Chat Header -->
+            <div class="chat-header">
+                <div class="room-info">
+                    <h2 id="current-room-name">Genel Sohbet</h2>
+                    <p id="current-room-description">Herkesin katılabileceği genel sohbet odası</p>
+                </div>
+                <div class="chat-actions">
+                    <button class="btn-action" id="search-btn" title="Mesaj Ara">
+                        <i class="fas fa-search"></i>
+                    </button>
+                    <button class="btn-action" id="emoji-btn" title="Emoji">
+                        <i class="far fa-smile"></i>
+                    </button>
+                    <button class="btn-action" id="file-upload-btn" title="Dosya Yükle">
+                        <i class="fas fa-paperclip"></i>
+                    </button>
+                    <button class="btn-action" id="settings-btn" title="Ayarlar">
+                        <i class="fas fa-cog"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Messages Container -->
+            <div class="messages-container" id="messages-container">
+                <!-- Mesajlar buraya yüklenecek -->
+                <div class="welcome-message">
+                    <div class="welcome-icon">
+                        <i class="fas fa-comments"></i>
+                    </div>
+                    <h2>ProChat'e Hoş Geldiniz!</h2>
+                    <p>Soldaki odalardan birini seçerek sohbete başlayın</p>
+                </div>
+            </div>
+
+            <!-- Message Input -->
+            <div class="message-input-container">
+                <div class="typing-indicator" id="typing-indicator">
+                    <!-- Yazıyor göstergesi -->
+                </div>
+                <div class="input-wrapper">
+                    <div class="input-actions">
+                        <button class="input-action-btn" id="add-emoji-btn">
+                            <i class="far fa-smile"></i>
+                        </button>
+                        <button class="input-action-btn" id="add-file-btn">
+                            <i class="fas fa-paperclip"></i>
+                        </button>
+                        <button class="input-action-btn" id="add-gif-btn">
+                            <i class="fas fa-film"></i>
+                        </button>
+                    </div>
+                    <div class="message-input-wrapper">
+                        <input type="text" 
+                               id="message-input" 
+                               placeholder="Mesajınızı yazın... (Enter ile gönder, Shift+Enter ile yeni satır)"
+                               maxlength="2000"
+                               autocomplete="off">
+                        <div class="char-counter">
+                            <span id="char-count">0/2000</span>
+                        </div>
+                    </div>
+                    <button class="send-button" id="send-button">
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
+                </div>
+                <div class="input-footer">
+                    <div class="message-formatting">
+                        <button class="format-btn" data-format="bold" title="Kalın">
+                            <i class="fas fa-bold"></i>
+                        </button>
+                        <button class="format-btn" data-format="italic" title="İtalik">
+                            <i class="fas fa-italic"></i>
+                        </button>
+                        <button class="format-btn" data-format="code" title="Kod">
+                            <i class="fas fa-code"></i>
+                        </button>
+                        <button class="format-btn" data-format="link" title="Link Ekle">
+                            <i class="fas fa-link"></i>
+                        </button>
+                    </div>
+                    <div class="message-options">
+                        <label class="option">
+                            <input type="checkbox" id="markdown-toggle">
+                            <span>Markdown</span>
+                        </label>
+                        <label class="option">
+                            <input type="checkbox" id="sound-toggle" checked>
+                            <span>Ses</span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Panel (User Details) -->
+        <div class="right-panel">
+            <div class="panel-header">
+                <h3><i class="fas fa-info-circle"></i> Oda Bilgileri</h3>
+                <button class="btn-icon" id="close-panel-btn">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <div class="panel-content">
+                <div class="room-details">
+                    <h4 id="panel-room-name">Genel Sohbet</h4>
+                    <p id="panel-room-description">Herkesin katılabileceği genel sohbet odası</p>
+                    <div class="room-stats">
+                        <div class="stat-item">
+                            <i class="fas fa-comment"></i>
+                            <span>Mesaj: <strong id="room-message-count">0</strong></span>
+                        </div>
+                        <div class="stat-item">
+                            <i class="fas fa-users"></i>
+                            <span>Üye: <strong id="room-member-count">0</strong></span>
+                        </div>
+                        <div class="stat-item">
+                            <i class="fas fa-calendar"></i>
+                            <span>Oluşturulma: <strong id="room-created-date">-</strong></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="room-members">
+                    <h4><i class="fas fa-user-friends"></i> Odadaki Üyeler</h4>
+                    <div class="members-list" id="room-members-list">
+                        <!-- Üyeler buraya yüklenecek -->
+                    </div>
+                </div>
+
+                <div class="recent-activity">
+                    <h4><i class="fas fa-chart-line"></i> Son Aktivite</h4>
+                    <div class="activity-list" id="recent-activity">
+                        <!-- Aktivite listesi -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modals -->
+    <div class="modal" id="login-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2><i class="fas fa-sign-in-alt"></i> ProChat'e Giriş</h2>
+                <button class="close-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="avatar-selection">
+                    <div class="avatar-option selected" data-color="#3B82F6">
+                        <span>U</span>
+                    </div>
+                    <div class="avatar-option" data-color="#10B981">
+                        <span>K</span>
+                    </div>
+                    <div class="avatar-option" data-color="#F59E0B">
+                        <span>A</span>
+                    </div>
+                    <div class="avatar-option" data-color="#EF4444">
+                        <span>M</span>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="login-username">Kullanıcı Adı</label>
+                    <input type="text" id="login-username" placeholder="Kullanıcı adınız" maxlength="20" autofocus>
+                </div>
+                <div class="form-group">
+                    <label for="login-color">Avatar Rengi</label>
+                    <input type="color" id="login-color" value="#3B82F6">
+                </div>
+                <button class="btn-primary" id="login-button">Sohbete Başla</button>
+                <p class="modal-note">
+                    <i class="fas fa-info-circle"></i>
+                    Giriş yaparak kullanım koşullarını kabul etmiş olursunuz.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="create-room-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2><i class="fas fa-plus-circle"></i> Yeni Oda Oluştur</h2>
+                <button class="close-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="room-name">Oda Adı</label>
+                    <input type="text" id="room-name" placeholder="örn: Teknoloji Sohbeti" maxlength="50">
+                </div>
+                <div class="form-group">
+                    <label for="room-description">Açıklama</label>
+                    <textarea id="room-description" placeholder="Oda açıklaması..." rows="3" maxlength="200"></textarea>
+                </div>
+                <div class="form-group">
+                    <label class="checkbox">
+                        <input type="checkbox" id="room-private">
+                        <span>Özel Oda (Sadece davetli kullanıcılar)</span>
+                    </label>
+                </div>
+                <div class="modal-actions">
+                    <button class="btn-secondary close-modal">İptal</button>
+                    <button class="btn-primary" id="create-room-confirm">Oluştur</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="user-profile-modal">
+        <div class="modal-content">
+            <!-- User profile modal içeriği -->
+        </div>
+    </div>
+
+    <!-- Emoji Picker -->
+    <div class="emoji-picker" id="emoji-picker">
+        <div class="emoji-categories">
+            <button class="emoji-category active" data-category="smileys">😀</button>
+            <button class="emoji-category" data-category="people">👋</button>
+            <button class="emoji-category" data-category="animals">🐶</button>
+            <button class="emoji-category" data-category="food">🍕</button>
+            <button class="emoji-category" data-category="objects">💡</button>
+            <button class="emoji-category" data-category="symbols">❤️</button>
+        </div>
+        <div class="emoji-grid" id="emoji-grid">
+            <!-- Emojiler buraya yüklenecek -->
+        </div>
+    </div>
+
+    <!-- Notifications -->
+    <div class="notification-container" id="notification-container">
+        <!-- Bildirimler burada görünecek -->
+    </div>
+
+    <!--
